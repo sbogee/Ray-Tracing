@@ -3,6 +3,8 @@ from hitable import Hitable, hit_record
 from ray import Ray
 from sphere import Sphere
 from hitable_list import Hitable_list
+from camera import Camera
+import random
 
 MAXFLOAT = 3.4028235e+38
 
@@ -20,25 +22,27 @@ def main():
     with open("file.ppm", "w", encoding="utf-8") as f:
         nx = 200
         ny = 100
+        ns = 100
 
         f.write(f"P3\n{nx} {ny}\n255\n")
-
-        lower_left_corner = Vec3(-2.0, -1.0, -1.0)
-        horizontal = Vec3(4.0, 0.0, 0.0)
-        vertical = Vec3(0.0, 2.0, 0.0)
-        origin = Vec3(0.0, 0.0, 0.0)
 
         list = [Sphere(Vec3(0, 0, -1), 0.5), Sphere(Vec3(0, -100.5, -1), 100)]
         world = Hitable_list(list, 2)
 
+        cam = Camera()
+
         for j in range(ny-1, -1, -1):
             for i in range(nx):
-                u = i / nx
-                v = j / ny
-                r = Ray(origin, lower_left_corner + u*horizontal + v*vertical)
+                col = Vec3(0, 0, 0)
 
-                p = r.point_at_parameter(2.0)
-                col = color(r, world)
+                for s in range(ns):
+                    u = (i + random.random()) / nx
+                    v = (j + random.random()) / ny
+                    r = cam.get_ray(u, v)
+                    p = r.point_at_parameter(2.0)
+                    col += color(r, world)
+
+                col.itruediv_scalar(ns)
                 ir = int(255.99 * col[0])
                 ig = int(255.99 * col[1])
                 ib = int(255.99 * col[2])
