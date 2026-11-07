@@ -5,6 +5,7 @@ from sphere import Sphere
 from hitable_list import Hitable_list
 from camera import Camera
 import random
+import math
 
 MAXFLOAT = 3.4028235e+38
 
@@ -17,7 +18,7 @@ def random_in_unit_sphere() -> Vec3:
 
 def color(r: Ray, world: Hitable) -> Vec3:
     rec = hit_record()
-    if world.hit(r, 0.0, MAXFLOAT, rec):
+    if world.hit(r, 0.001, MAXFLOAT, rec):
         target = rec.p + rec.normal + random_in_unit_sphere()
         return 0.5 * color(Ray(rec.p, target - rec.p), world)
     else:
@@ -47,10 +48,10 @@ def main():
                     u = (i + random.random()) / nx
                     v = (j + random.random()) / ny
                     r = cam.get_ray(u, v)
-                    p = r.point_at_parameter(2.0)
                     col += color(r, world)
 
                 col.itruediv_scalar(ns)
+                col = Vec3(math.sqrt(col[0]), math.sqrt(col[1]), math.sqrt(col[2]))
                 ir = int(255.99 * col[0])
                 ig = int(255.99 * col[1])
                 ib = int(255.99 * col[2])

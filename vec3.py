@@ -68,10 +68,9 @@ class Vec3:
         return self
 
     def itruediv_scalar(self, t: float) -> 'Vec3':
-        k = 1.0 / t
-        self.e[0] *= k
-        self.e[1] *= k
-        self.e[2] *= k
+        self.e[0] /= t
+        self.e[1] /= t
+        self.e[2] /= t
         return self
 
     def squared_length(self) -> float:
