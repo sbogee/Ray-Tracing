@@ -1,18 +1,24 @@
 from vec3 import Vec3, unit_vector, dot
 from ray import Ray
+import math
 
-def hit_sphere(center: Vec3, radius: float, r: Ray) -> bool:
+def hit_sphere(center: Vec3, radius: float, r: Ray) -> float:
     oc = r.origin() - center
     a = dot(r.direction(), r.direction())
     b = 2.0 * dot(oc, r.direction())
     c = dot(oc, oc) - radius * radius
     discriminant = b * b - 4 * a * c
-    return discriminant > 0
+    if discriminant < 0:
+        return 0
+    else:
+        return (-b - math.sqrt(discriminant)) / (2.0 * a)
 
 
 def color(r: Ray) -> Vec3:
-    if hit_sphere(Vec3(0, 0, -1), 0.5, r):
-        return Vec3(1, 0, 0)
+    t = hit_sphere(Vec3(0, 0, -1), 0.5, r)
+    if t > 0.0:
+        N = unit_vector(r.point_at_parameter(t) - Vec3(0, 0, -1))
+        return 0.5 * Vec3(N.x + 1, N.y + 1, N.z +1)
     unit_direction = unit_vector(r.direction())
     t = 0.5 * (unit_direction.y + 1.0)
     return (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0)
