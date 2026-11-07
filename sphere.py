@@ -9,22 +9,43 @@ class Sphere(Hitable):
         self.radius = r
 
     def hit(self, r: Ray, t_min: float, t_max: float, rec: hit_record) -> bool:
-        oc = r.origin() - self.center
-        a = dot(r.direction(), r.direction())
-        b = dot(oc, r.direction())
-        c = dot(oc, oc) - self.radius * self.radius
+        origin = r.origin()
+        direction = r.direction()
+        ocx = origin.x - self.center.x
+        ocy = origin.y - self.center.y
+        ocz = origin.z - self.center.z
+        a = dot(direction, direction)
+        b = ocx * direction.x + ocy * direction.y + ocz * direction.z
+        c = ocx * ocx + ocy * ocy + ocz * ocz - self.radius * self.radius
         discriminant = b*b - a*c
         if discriminant > 0:
-            temp = (-b - math.sqrt(b*b - a*c)) / a
+            sqrt_discriminant = math.sqrt(discriminant)
+            temp = (-b - sqrt_discriminant) / a
             if temp < t_max and temp > t_min:
                 rec.t = temp
-                rec.p = r.point_at_parameter(rec.t)
-                rec.normal = (rec.p - self.center) / self.radius
+                rec.p = Vec3(
+                    origin.x + temp * direction.x,
+                    origin.y + temp * direction.y,
+                    origin.z + temp * direction.z,
+                )
+                rec.normal = Vec3(
+                    (rec.p.x - self.center.x) / self.radius,
+                    (rec.p.y - self.center.y) / self.radius,
+                    (rec.p.z - self.center.z) / self.radius,
+                )
                 return True
-            temp = (-b + math.sqrt(b*b - a*c)) / a
+            temp = (-b + sqrt_discriminant) / a
             if temp < t_max and temp > t_min:
                 rec.t = temp
-                rec.p = r.point_at_parameter(rec.t)
-                rec.normal = (rec.p - self.center) / self.radius
+                rec.p = Vec3(
+                    origin.x + temp * direction.x,
+                    origin.y + temp * direction.y,
+                    origin.z + temp * direction.z,
+                )
+                rec.normal = Vec3(
+                    (rec.p.x - self.center.x) / self.radius,
+                    (rec.p.y - self.center.y) / self.radius,
+                    (rec.p.z - self.center.z) / self.radius,
+                )
                 return True
         return False

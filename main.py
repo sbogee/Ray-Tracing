@@ -11,20 +11,24 @@ MAXFLOAT = 3.4028235e+38
 
 def random_in_unit_sphere() -> Vec3:
     while True:
-        p = 2.0 * Vec3(random.random(), random.random(), random.random()) - Vec3(1, 1, 1)
-        if p.squared_length() < 1.0:
-            break
-    return p
+        x = 2.0 * random.random() - 1.0
+        y = 2.0 * random.random() - 1.0
+        z = 2.0 * random.random() - 1.0
+        if x**2 + y**2 + z**2 < 1.0:
+            return Vec3(x, y, z)
 
 def color(r: Ray, world: Hitable) -> Vec3:
     rec = hit_record()
-    if world.hit(r, 0.001, MAXFLOAT, rec):
+    attenuation = 1.0
+    while world.hit(r, 0.001, MAXFLOAT, rec):
         target = rec.p + rec.normal + random_in_unit_sphere()
-        return 0.5 * color(Ray(rec.p, target - rec.p), world)
-    else:
-        unit_direction = unit_vector(r.direction())
-        t = 0.5 * (unit_direction.y + 1.0)
-        return (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0)
+        r = Ray(rec.p, target - rec.p)
+        attenuation *= 0.5
+
+    unit_direction = unit_vector(r.direction())
+    t = 0.5 * (unit_direction.y + 1.0)
+    sky_color = (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0)
+    return attenuation * sky_color
 
 
 def main():
@@ -41,6 +45,7 @@ def main():
         cam = Camera()
 
         for j in range(ny-1, -1, -1):
+            row = []
             for i in range(nx):
                 col = Vec3(0, 0, 0)
 
@@ -55,8 +60,8 @@ def main():
                 ir = int(255.99 * col[0])
                 ig = int(255.99 * col[1])
                 ib = int(255.99 * col[2])
-                f.write(f"{ir} {ig} {ib}\n")
+                row.append(f"{ir} {ig} {ib}\n")
+            f.write("".join(row))
 
-        f.close()
 
 main()
