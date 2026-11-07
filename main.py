@@ -8,10 +8,18 @@ import random
 
 MAXFLOAT = 3.4028235e+38
 
+def random_in_unit_sphere() -> Vec3:
+    while True:
+        p = 2.0 * Vec3(random.random(), random.random(), random.random()) - Vec3(1, 1, 1)
+        if p.squared_length() < 1.0:
+            break
+    return p
+
 def color(r: Ray, world: Hitable) -> Vec3:
     rec = hit_record()
     if world.hit(r, 0.0, MAXFLOAT, rec):
-        return 0.5 * Vec3(rec.normal.x + 1, rec.normal.y + 1, rec.normal.z + 1)
+        target = rec.p + rec.normal + random_in_unit_sphere()
+        return 0.5 * color(Ray(rec.p, target - rec.p), world)
     else:
         unit_direction = unit_vector(r.direction())
         t = 0.5 * (unit_direction.y + 1.0)
