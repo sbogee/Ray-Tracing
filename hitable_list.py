@@ -19,4 +19,5 @@ class Hitable_list(Hitable):
                 rec.t = temp_rec.t
                 rec.p = temp_rec.p
                 rec.normal = temp_rec.normal
+                rec.mat_ptr = temp_rec.mat_ptr
         return hit_anything

@@ -2,11 +2,13 @@ from hitable import Hitable, hit_record
 from vec3 import Vec3, dot
 from ray import Ray
 import math
+from material import Material
 
 class Sphere(Hitable):
-    def __init__(self, cen: Vec3=None, r: float=None):
+    def __init__(self, cen: Vec3=None, r: float=None, m: Material=None):
         self.center = cen
         self.radius = r
+        self.material = m
 
     def hit(self, r: Ray, t_min: float, t_max: float, rec: hit_record) -> bool:
         origin = r.origin()
@@ -33,6 +35,7 @@ class Sphere(Hitable):
                     (rec.p.y - self.center.y) / self.radius,
                     (rec.p.z - self.center.z) / self.radius,
                 )
+                rec.mat_ptr = self.material
                 return True
             temp = (-b + sqrt_discriminant) / a
             if temp < t_max and temp > t_min:
@@ -47,5 +50,6 @@ class Sphere(Hitable):
                     (rec.p.y - self.center.y) / self.radius,
                     (rec.p.z - self.center.z) / self.radius,
                 )
+                rec.mat_ptr = self.material
                 return True
         return False

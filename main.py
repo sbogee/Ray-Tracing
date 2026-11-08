@@ -1,4 +1,4 @@
-from vec3 import Vec3, unit_vector, dot
+from vec3 import Vec3, unit_vector
 from hitable import Hitable, hit_record
 from ray import Ray
 from sphere import Sphere
@@ -6,30 +6,23 @@ from hitable_list import Hitable_list
 from camera import Camera
 import random
 import math
+from lambertian import Lambertian
+from metal import Metal
 
 MAXFLOAT = 3.4028235e+38
 
-def random_in_unit_sphere() -> Vec3:
-    while True:
-        x = 2.0 * random.random() - 1.0
-        y = 2.0 * random.random() - 1.0
-        z = 2.0 * random.random() - 1.0
-        if x**2 + y**2 + z**2 < 1.0:
-            return Vec3(x, y, z)
-
-def color(r: Ray, world: Hitable) -> Vec3:
+def color(r: Ray, world: Hitable, depth: int) -> Vec3:
     rec = hit_record()
-    attenuation = 1.0
-    while world.hit(r, 0.001, MAXFLOAT, rec):
-        target = rec.p + rec.normal + random_in_unit_sphere()
-        r = Ray(rec.p, target - rec.p)
-        attenuation *= 0.5
-
-    unit_direction = unit_vector(r.direction())
-    t = 0.5 * (unit_direction.y + 1.0)
-    sky_color = (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0)
-    return attenuation * sky_color
-
+    if world.hit(r, 0.001, MAXFLOAT, rec):
+        scatter_result, attenuation, scattered = rec.mat_ptr.scatter(r, rec)
+        if depth < 50 and scatter_result:
+            return attenuation * color(scattered, world, depth + 1)
+        else:
+            return Vec3(0, 0, 0)
+    else:
+        unit_direction = unit_vector(r.direction())
+        t = 0.5 * (unit_direction.y + 1.0)
+        return (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0)
 
 def main():
     with open("file.ppm", "w", encoding="utf-8") as f:
@@ -39,8 +32,11 @@ def main():
 
         f.write(f"P3\n{nx} {ny}\n255\n")
 
-        list = [Sphere(Vec3(0, 0, -1), 0.5), Sphere(Vec3(0, -100.5, -1), 100)]
-        world = Hitable_list(list, 2)
+        list = [Sphere(Vec3(0, 0, -1), 0.5, Lambertian(Vec3(0.8, 0.3, 0.3))), 
+                Sphere(Vec3(0, -100.5, -1), 100, Lambertian(Vec3(0.8, 0.8, 0.0))),
+                Sphere(Vec3(1, 0, -1), 0.5, Metal(Vec3(0.8, 0.6, 0.2))),
+                Sphere(Vec3(-1, 0, -1), 0.5, Metal(Vec3(0.8, 0.8, 0.8)))]
+        world = Hitable_list(list, 4)
 
         cam = Camera()
 
@@ -53,7 +49,8 @@ def main():
                     u = (i + random.random()) / nx
                     v = (j + random.random()) / ny
                     r = cam.get_ray(u, v)
-                    col += color(r, world)
+                    p = r.point_at_parameter(2.0)
+                    col += color(r, world, 0)
 
                 col.itruediv_scalar(ns)
                 col = Vec3(math.sqrt(col[0]), math.sqrt(col[1]), math.sqrt(col[2]))
